@@ -5,7 +5,7 @@ function App() {
   const [func, setFunc] = useState("sin(x) + 2");
   const [axis, setAxis] = useState("x");
   const [playing, setPlaying] = useState(false);
-  const [speed, setSpeed] = useState(1);
+  const [speed, setSpeed] = useState(0.3);
 
   return (
     <div style={{ fontFamily: "sans-serif", padding: 20 }}>

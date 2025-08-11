@@ -37,13 +37,26 @@ function SurfaceRevolution({ func, axis, playing, speed }) {
     scene.add(light);
     scene.add(new THREE.AmbientLight(0xffffff, 0.5));
 
-    // Axes helper
-    scene.add(new THREE.AxesHelper(5));
+    // Axes (black)
+    const axesGroup = new THREE.Group();
+    const axisMaterial = new THREE.LineBasicMaterial({ color: 0x000000 });
+    const addAxis = (from, to) => {
+      const geometry = new THREE.BufferGeometry().setFromPoints([from, to]);
+      const line = new THREE.Line(geometry, axisMaterial);
+      axesGroup.add(line);
+    };
+    addAxis(new THREE.Vector3(-5, 0, 0), new THREE.Vector3(5, 0, 0)); // X
+    addAxis(new THREE.Vector3(0, -5, 0), new THREE.Vector3(0, 5, 0)); // Y
+    addAxis(new THREE.Vector3(0, 0, -5), new THREE.Vector3(0, 0, 5)); // Z
+    scene.add(axesGroup);
 
-    // Axis labels
-    function makeTextSprite(message, color = '#000', fontSize = 48) {
+    // Axis labels (black, bigger)
+    function makeTextSprite(message, color = '#000', fontSize = 96) {
       const canvas = document.createElement('canvas');
       const context = canvas.getContext('2d');
+      // Increase canvas size for sharper text
+      canvas.width = 256;
+      canvas.height = 128;
       context.font = `${fontSize}px Arial`;
       context.fillStyle = color;
       context.textAlign = 'center';
@@ -52,21 +65,22 @@ function SurfaceRevolution({ func, axis, playing, speed }) {
       const texture = new THREE.CanvasTexture(canvas);
       const spriteMaterial = new THREE.SpriteMaterial({ map: texture, transparent: true });
       const sprite = new THREE.Sprite(spriteMaterial);
-      sprite.scale.set(0.7, 0.35, 1);
+      // Slightly larger than before while preserving aspect
+      sprite.scale.set(1.1, 0.55, 1);
       return sprite;
     }
 
     // X label
-    const xLabel = makeTextSprite('x', '#d32f2f');
-    xLabel.position.set(5.5, 0, 0);
+    const xLabel = makeTextSprite('x', '#000');
+    xLabel.position.set(5.7, 0, 0);
     scene.add(xLabel);
     // Y label
-    const yLabel = makeTextSprite('y', '#388e3c');
-    yLabel.position.set(0, 5.5, 0);
+    const yLabel = makeTextSprite('y', '#000');
+    yLabel.position.set(0, 5.7, 0);
     scene.add(yLabel);
     // Z label
-    const zLabel = makeTextSprite('z', '#1976d2');
-    zLabel.position.set(0, 0, 5.5);
+    const zLabel = makeTextSprite('z', '#000');
+    zLabel.position.set(0, 0, 5.7);
     scene.add(zLabel);
 
     // Parse function
@@ -174,9 +188,8 @@ function SurfaceRevolution({ func, axis, playing, speed }) {
       updateSurface(thetaRef.current);
       controls.update();
       renderer.render(scene, camera);
-      if (t < 1 || !playing) {
-        requestRef.current = requestAnimationFrame(animate);
-      }
+      // Keep the loop running so orbit rotation always works
+      requestRef.current = requestAnimationFrame(animate);
     }
     animate();
 
@@ -189,6 +202,8 @@ function SurfaceRevolution({ func, axis, playing, speed }) {
       scene.remove(xLabel);
       scene.remove(yLabel);
       scene.remove(zLabel);
+      scene.remove(axesGroup);
+      axisMaterial.dispose();
     };
     // eslint-disable-next-line
   }, [func, axis, playing, speed]);
